@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Tic-Tac-Toe</h1>
+        
+        <!-- Game board -->
+        <div class="game-board" id="game-board">
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+        </div>
+
+        <!-- Displaying game status -->
+        <div class="game-status" id="game-status">Player X's turn</div>
+        <button id="restart-button" class="restart-button">Restart Game</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+/* Base styling for the body */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f9;
+    font-family: Arial, sans-serif;
+}
+
+/* Container for the game */
+.container {
+    text-align: center;
+}
+
+/* Game board styling */
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+    margin: 20px auto;
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    border: 2px solid #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cell:hover {
+    background-color: #f0f0f0;
+}
+
+/* Game status message */
+.game-status {
+    margin-top: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Restart button styling */
+.restart-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.restart-button:hover {
+    background-color: #555;
+}
+
+// Constants for players and cells
+const X_CLASS = 'x';
+const O_CLASS = 'o';
+let circleTurn;
+
+// Winning combinations for the game
+const WINNING_COMBINATIONS = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+
+// Selecting elements from the DOM
+const cellElements = document.querySelectorAll('[data-cell]');
+const board = document.getElementById('game-board');
+const gameStatusElement = document.getElementById('game-status');
+const restartButton = document.getElementById('restart-button');
+
+// Start the game
+startGame();
+
+restartButton.addEventListener('click', startGame);
+
+function startGame() {
+    circleTurn = false;
+    cellElements.forEach(cell => {
+        cell.classList.remove(X_CLASS);
+        cell.classList.remove(O_CLASS);
+        cell.removeEventListener('click', handleClick);
+        cell.addEventListener('click', handleClick, { once: true });
+    });
+    setBoardHoverClass();
+    setGameStatus("Player X's turn");
+}
+
+function handleClick(e) {
+    const cell = e.target;
+    const currentClass = circleTurn ? O_CLASS : X_CLASS;
+    placeMark(cell, currentClass);
+    
+    if (checkWin(currentClass)) {
+        endGame(false);
+    } else if (isDraw()) {
+        endGame(true);
+    } else {
+        swapTurns();
+        setBoardHoverClass();
+        setGameStatus(circleTurn ? "Player O's turn" : "Player X's turn");
+    }
+}
+
+function endGame(draw) {
+    if (draw) {
+        setGameStatus("It's a draw!");
+    } else {
+        setGameStatus(circleTurn ? "Player O wins!" : "Player X wins!");
+    }
+    // Make cells unclickable after the game ends
+    cellElements.forEach(cell => cell.removeEventListener('click', handleClick));
+}
+
+function isDraw() {
+    return [...cellElements].every(cell => {
+        return cell.classList.contains(X_CLASS) || cell.classList.contains(O_CLASS);
+    });
+}
+
+function placeMark(cell, currentClass) {
+    cell.classList.add(currentClass);
+}
+
+function swapTurns() {
+    circleTurn = !circleTurn;
+}
+
+function setBoardHoverClass() {
+    board.classList.remove(X_CLASS);
+    board.classList.remove(O_CLASS);
+    if (circleTurn) {
+        board.classList.add(O_CLASS);
+    } else {
+        board.classList.add(X_CLASS);
+    }
+}
+
+function checkWin(currentClass) {
+    return WINNING_COMBINATIONS.some(combination => {
+        return combination.every(index => {
+            return cellElements[index].classList.contains(currentClass);
+        });
+    });
+}
+
+function setGameStatus(message) {
+    gameStatusElement.textContent = message;
+}
+
